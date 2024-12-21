@@ -1,7 +1,7 @@
 const mongoose = require("mongoose")
 
 const UserScema = new mongoose.Schema({
-    username:{
+    username: {
         type: String,
         unique: true,
         required: true
@@ -10,16 +10,21 @@ const UserScema = new mongoose.Schema({
         type: String,
         required: true
     },
-    email:{
+    email: {
         type: String,
         unique: true,
         required: true
     },
-    password:{
+    password: {
         type: String,
         required: true
-    }
-}, {timestamps: true})
+    },
+    chatrooms: {
+        type: Map,
+        of: String,
+        default: {},
+    },
+}, { timestamps: true })
 
 const User = mongoose.model("User", UserScema)
 
