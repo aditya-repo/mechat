@@ -34,11 +34,11 @@ app.use(express.json())
 // Database
 database(DATABASE)
 
-const UserRouter = require('./routes/user')
 const authWare = require("./middlewares/auth")
+const UserRouter = require('./routes/user')
+app.use('/user', authWare, UserRouter)
 app.post('/login', signin)
 app.post('/signup', signup)
-app.use('/user', authWare, UserRouter)
 
 
 app.use(errorHandler)

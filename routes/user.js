@@ -1,10 +1,12 @@
 const express = require("express")
-const { dashboard, test, searchedUser } = require("../controllers/dashboard")
+const { dashboard, test, searchedUser, pairUser } = require("../controllers/dashboard")
 
 const router = express()
 
 router.post('/', dashboard)
+router.post('/pair')
 router.post('/test', test)
-router.post('/search/:id', searchedUser)
+router.post('/search/:email', searchedUser)
+router.post('/pairing', pairUser)
 
 module.exports = router

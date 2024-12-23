@@ -7,12 +7,12 @@ const MessageSchema = new mongoose.Schema({
         type: String,
         // required: true
     }, 
+    receipent: {
+        type: String
+    },
     message: {
         type: String,
         required: true
-    },
-    receipent: {
-        type: String
     },
     timestamp: { type: Date, default: Date.now },
 

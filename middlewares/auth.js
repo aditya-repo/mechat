@@ -15,8 +15,9 @@ const authWare = (req, res, next) => {
         const decoded = jwt.verify(token, JWT_TOKEN)
         res.user = decoded
         next()
+       
     } catch (error) {
-        return res.status(401).json({ message: 'invalid token' })
+        return res.status(401).json({ message: 'Session expired' })
     }
 }
 

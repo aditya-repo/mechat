@@ -62,7 +62,7 @@ const signin = async (req, res, next) => {
 
         const token = jwt.sign({userid: user._id}, JWT_TOKEN, {expiresIn: '1h'})
 
-        return res.status(200).json({token: token})
+        return res.status(200).json({token: token, userid: user._id})
 
     } catch (error) {
 

@@ -1,93 +1,54 @@
+const Message = require("../models/message");
 const User = require("../models/user")
-
+const mongoose = require('mongoose')
 const dashboard = async (req, res) => {
-    return res.json({
-        userarray: [
-            {
-                "_id": "6766a2cd89b77dfd2f3b1f33",
-                "username": "aditya",
-                "name": "Kaushal",
-                "email": "adityaraj6220@gmail.com",
-                "chatid": "6766a2cd89b77d14673b1f33"
-            },
-            {
-                "_id": "1234b2cd89b77dfd2f3b1f34",
-                "username": "johnny",
-                "name": "John Doe",
-                "email": "john.doe@example.com",
-                "chatid": "1234b2cd89b77d14673b1f34"
-            },
-            {
-                "_id": "2345c3cd89b77dfd2f3b1f35",
-                "username": "alice",
-                "name": "Alice Johnson",
-                "email": "alice.johnson@example.com",
-                "chatid": "2345c3cd89b77d14673b1f35"
-            },
-            {
-                "_id": "3456d4cd89b77dfd2f3b1f36",
-                "username": "bob",
-                "name": "Bob Smith",
-                "email": "bob.smith@example.com",
-                "chatid": "3456d4cd89b77d14673b1f36"
-            },
-            {
-                "_id": "4567e5cd89b77dfd2f3b1f37",
-                "username": "charlie",
-                "name": "Charlie Brown",
-                "email": "charlie.brown@example.com",
-                "chatid": "4567e5cd89b77d14673b1f37"
-            },
-            {
-                "_id": "5678f6cd89b77dfd2f3b1f38",
-                "username": "david",
-                "name": "David Lee",
-                "email": "david.lee@example.com",
-                "chatid": "5678f6cd89b77d14673b1f38"
-            },
-            {
-                "_id": "6789g7cd89b77dfd2f3b1f39",
-                "username": "ellen",
-                "name": "Ellen White",
-                "email": "ellen.white@example.com",
-                "chatid": "6789g7cd89b77d14673b1f39"
-            },
-            {
-                "_id": "7890h8cd89b77dfd2f3b1f40",
-                "username": "frank",
-                "name": "Frank Harris",
-                "email": "frank.harris@example.com",
-                "chatid": "7890h8cd89b77d14673b1f40"
-            },
-            {
-                "_id": "8901i9cd89b77dfd2f3b1f41",
-                "username": "george",
-                "name": "George Davis",
-                "email": "george.davis@example.com",
-                "chatid": "8901i9cd89b77d14673b1f41"
-            },
-            {
-                "_id": "9012j0cd89b77dfd2f3b1f42",
-                "username": "hannah",
-                "name": "Hannah Miller",
-                "email": "hannah.miller@example.com",
-                "chatid": "9012j0cd89b77d14673b1f42"
-            }
-        ]
-    })
-}
+    try {
+        const { userid } = req.body;
+
+        // Fetch the user by their ID
+        const response = await User.findById(userid);
+
+        if (!response) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        console.log(response);
+        
+
+        // Get chatroom keys and ensure they're valid ObjectIds
+        const chatroomKeys = Array.from(response.chatrooms.keys())
+
+        console.log(chatroomKeys);
+        
+
+        if (chatroomKeys.length === 0) {
+            return res.status(200).json({ userarray: [] });
+        }
+
+        // Fetch users whose IDs match the chatroom keys
+        const alldata = await User.find({ _id: { $in: chatroomKeys } })
+            .select(`name email username chatrooms.${userid}`);
+
+        // Return the fetched data
+        return res.json({
+            userarray: alldata,
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'An error occurred' });
+    }
+};
+
 
 const searchedUser = async (req, res) => {
+    const {email} = req.params
+    console.log(email);
+    const response = await User.find({email: { $regex: email, $options: 'i' }})
+    if (!response) {
+        return res.json({message: "no user found"})
+    }
     return res.json({
-        userarray: [
-            {
-                "chatrooms": {},
-                "_id": "6766a2cd89b77dfd2f3b1f33",
-                "username": "aditya",
-                "name": "Kaushal",
-                "email": "adityaraj6220@gmail.com"
-            }
-        ]
+        userarray: response
     })
 }
 
@@ -96,4 +57,59 @@ const test = async (req, res) => {
     res.json({ response })
 }
 
-module.exports = { dashboard, test, searchedUser }
+// const testNewUserAdd = async(req, res)=> {
+//     const response = new User([
+//         {
+//           "_id": "6766a2cd89b77dfd2f3b1f33",
+//           "username": "aditya",
+//           "name": "Aditya Raj",
+//           "email": "adityaraj6220@gmail.com",
+//           "chatid": "6766a2cd89b77d14673b1f33"
+//         },
+//         {
+//           "_id": "1234b2cd89b77dfd2f3b1f34",
+//           "username": "johnny",
+//           "name": "John Doe",
+//           "email": "john@mail.com",
+//         },
+//         {
+//           "_id": "2345c3cd89b77dfd2f3b1f35",
+//           "username": "alice",
+//           "name": "Alice Johnson",
+//           "email": "alice.@mail.com",
+//         },
+//       ])
+
+//       user
+// }
+
+const pairUser = async (req, res) => {
+    const { senderid, receipentid } = req.body
+    let payload = { sender: senderid, receipent: receipentid, message: "Starting chat..." }
+
+    console.log(payload);
+    
+
+    // return res.json({messgae: "hello"})
+    const message = new Message({ chatroom: payload })
+    const response = await message.save()
+
+    try {
+        await Promise.all([
+            User.findByIdAndUpdate(senderid, {
+                $set: { [`chatrooms.${receipentid}`]: response._id }
+            }, { new: true }),
+            User.findByIdAndUpdate(receipentid, {
+                $set: { [`chatrooms.${senderid}`]: response._id }
+            }, { new: true }),
+        ])
+
+        return res.json({message: 'paired successfully'})
+
+    } catch (error) {
+        console.log(error)
+        return res.json({ message: 'pairing failed' })
+    }
+}
+
+module.exports = { dashboard, test, searchedUser, pairUser }
