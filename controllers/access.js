@@ -50,6 +50,9 @@ const signin = async (req, res, next) => {
 
     try {
         const user = await User.findOne({email})
+
+        console.log(user);
+        
         if (!user) {
             return res.status(401).json({message: "email not found"})
         }

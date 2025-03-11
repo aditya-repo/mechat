@@ -2,7 +2,6 @@ const mongoose = require("mongoose")
 
 const MessageSchema = new mongoose.Schema({
 
-    chatroom: [{
     sender: {
         type: String,
         // required: true
@@ -16,7 +15,6 @@ const MessageSchema = new mongoose.Schema({
     },
     timestamp: { type: Date, default: Date.now },
 
-    }]
 }, { timestamps: true })
 
 const Message = mongoose.model("Message", MessageSchema)

@@ -1,6 +1,29 @@
 const Message = require("../models/message");
 const User = require("../models/user")
-const mongoose = require('mongoose')
+
+const getFriendsList = async (req, res) => {
+    try {
+        const { userId } = req.params; // Extract user ID from request params
+
+        const user = await User.findById(userId).select(`name email username chatrooms.${userId}`);
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Convert Map of friends to an array
+        const friendsList = Object.entries(user.friends || {}).map(([id, username]) => ({
+            id,
+            username
+        }));
+
+        return res.status(200).json({ friends: friendsList });
+    } catch (error) {
+        console.error("Error fetching friends list:", error);
+        return res.status(500).json({ message: "Server error" });
+    }
+};
+
 const dashboard = async (req, res) => {
     try {
         const { userid } = req.body;
@@ -39,18 +62,30 @@ const dashboard = async (req, res) => {
     }
 };
 
-
 const searchedUser = async (req, res) => {
-    const {email} = req.params
-    console.log(email);
-    const response = await User.find({email: { $regex: email, $options: 'i' }})
-    if (!response) {
-        return res.json({message: "no user found"})
+    try {
+        const { email } = req.params;
+
+        const response = await User.find({ email: { $regex: email, $options: "i" } });
+
+        if (response.length === 0) {
+            return res.json({ message: "No user found" });
+        }
+
+        const data = response.map((user) => ({
+            username: user.username,
+            name: user.name,
+            email: user.email,
+            _id: user._id,
+        }));
+
+        return res.json({ userarray: data });
+    } catch (error) {
+        console.error("Error searching user:", error);
+        return res.status(500).json({ message: "Server error" });
     }
-    return res.json({
-        userarray: response
-    })
-}
+};
+
 
 const test = async (req, res) => {
     const response = await User.findOne({ email: "adityaraj6220@gmail.com" }).select('name email username chatrooms')
@@ -112,4 +147,4 @@ const pairUser = async (req, res) => {
     }
 }
 
-module.exports = { dashboard, test, searchedUser, pairUser }
+module.exports = { dashboard, test, searchedUser, pairUser, getFriendsList }
